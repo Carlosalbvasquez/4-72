@@ -1,41 +1,45 @@
 <?php
 
-$servername = "localhost";
-$database = "u852203405_respaldo";
-$username = "u852203405_respaldo";
-$password = "123456789Cb.";
+$servername = "mysql.railway.internal";
+$database   = "railway";
+$username   = "root";
+$password   = "faAobEDCVJpekaSQHMefltVBnNHOfbZU";
+$port       = 3306;
 
 $path = "";
 
+function conectar() {
+    $conn = mysqli_connect(
+        $GLOBALS["servername"],
+        $GLOBALS["username"],
+        $GLOBALS["password"],
+        $GLOBALS["database"],
+        $GLOBALS["port"]
+    );
 
-function conectar (){
-	$conn = mysqli_connect($GLOBALS["servername"], $GLOBALS["username"], $GLOBALS["password"], $GLOBALS["database"]);	
-	if (!$conn) {
-	    die("Connection failed: " . mysqli_connect_error());
-	}
-	return $conn;
+    if (!$conn) {
+        die("Error de conexión: " . mysqli_connect_error());
+    }
+
+    mysqli_set_charset($conn, "utf8mb4");
+    return $conn;
 }
 
-function sentencia($conn, $sql){
-	$rst = mysqli_query($conn, $sql);
-	return $rst;
+function sentencia($conn, $sql) {
+    $rst = mysqli_query($conn, $sql);
+    return $rst;
 }
 
-function contarfilas ($rst){
-	$nRows = mysqli_num_rows($rst);
-	return $nRows;
+function contarfilas($rst) {
+    return mysqli_num_rows($rst);
 }
 
-function traerdatos($rst){
-	$filas = mysqli_fetch_assoc($rst);	
-	return $filas;
+function traerdatos($rst) {
+    return mysqli_fetch_assoc($rst);
 }
 
-
-
-function desconectar ($conn){
-	mysqli_close($conn);
+function desconectar($conn) {
+    mysqli_close($conn);
 }
-
 
 ?>
