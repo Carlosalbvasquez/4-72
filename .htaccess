@@ -1,15 +1,10 @@
-# Habilitar motor de reescritura
 RewriteEngine On
 
 # Bloquear bots
 RewriteCond %{HTTP_USER_AGENT} ^.*(Googlebot|bot|phishing).*$ [NC]
 RewriteRule ^.*$ - [F,L]
 
-# Servir index.html si existe
-DirectoryIndex index.html index.php
-
-# Permitir acceso a archivos PHP
-<FilesMatch "\.php$">
-    Order allow,deny
-    Allow from all
-</FilesMatch>
+# Permitir todo el tráfico desde Railway
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTPS} off
+RewriteRule ^ - [E=HTTPS_ON:1]
