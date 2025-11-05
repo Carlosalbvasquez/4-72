@@ -13,32 +13,34 @@ COPY . /var/www/html/
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Habilitar .htaccess y configuración de directorios
+# Configurar ServerName
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
+# Habilitar .htaccess
 RUN echo '<Directory /var/www/html/>\n\
     Options Indexes FollowSymLinks\n\
     AllowOverride All\n\
     Require all granted\n\
-    \n\
-    <FilesMatch \.php$>\n\
-        SetHandler application/x-httpd-php\n\
-    </FilesMatch>\n\
 </Directory>' > /etc/apache2/conf-available/docker-php.conf \
     && a2enconf docker-php
 
-# Configurar Apache para el puerto dinámico de Railway
+# Crear script de inicio para manejar el puerto dinámico
 RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Configurar puerto (Railway usa PORT, por defecto 80)\n\
 PORT=${PORT:-80}\n\
-sed -i "s/Listen 80/Listen $PORT/" /etc/apache2/ports.conf\n\
-sed -i "s/:80/:$PORT/" /etc/apache2/sites-available/000-default.conf\n\
-sed -i "s/VirtualHost \\*:80/VirtualHost *:$PORT/" /etc/apache2/sites-available/000-default.conf\n\
-apache2-foreground' > /start.sh && chmod +x /start.sh
+echo "Configurando Apache en puerto $PORT"\n\
+\n\
+# Actualizar configuración de puertos\n\
+sed -i "s/Listen 80/Listen ${PORT}/" /etc/apache2/ports.conf\n\
+sed -i "s/<VirtualHost \\*:80>/<VirtualHost *:${PORT}>/" /etc/apache2/sites-available/000-default.conf\n\
+\n\
+# Iniciar Apache\n\
+exec apache2-foreground\n\
+' > /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Configurar ServerName
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+EXPOSE 80
 
-# Asegurar que PHP esté habilitado en Apache
-RUN a2enmod php
-
-EXPOSE ${PORT:-80}
-
-CMD ["/start.sh"]
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
